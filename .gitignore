@@ -1,0 +1,24 @@
+# Hyperledger Fabric generated files
+crypto-config/
+channel-artifacts/*.block
+channel-artifacts/*.tx
+system-genesis-block/
+
+# Docker volumes and production data
+/var/hyperledger/
+
+# Chaincode build artifacts
+chaincode/**/node_modules/
+chaincode/**/*.tar.gz
+chaincode/**/vendor/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
