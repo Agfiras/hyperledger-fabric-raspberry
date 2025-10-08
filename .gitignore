@@ -1,24 +1,45 @@
-# Hyperledger Fabric generated files
+# Docker volumes (blockchain data - should NOT be in Git)
+peer0-org1-data/
+orderer-data/
+peer0-org2-data/
+
+# Crypto material (regenerate instead of committing)
 crypto-config/
-channel-artifacts/*.block
-channel-artifacts/*.tx
-system-genesis-block/
 
-# Docker volumes and production data
-/var/hyperledger/
+# Channel artifacts (regenerate)
+channel-artifacts/
 
-# Chaincode build artifacts
-chaincode/**/node_modules/
-chaincode/**/*.tar.gz
-chaincode/**/vendor/
+# Compiled chaincode binaries
+chaincode-new/chaincode-binary
+chaincode/chaincode-binary
 
-# IDE and OS files
-.vscode/
-.idea/
-.DS_Store
+# Chaincode packages
+*.tar.gz
+
+# Go build artifacts
+vendor/
+
+# Temporary files
+*.log
 *.swp
 *.swo
 *~
+.env
 
-# Logs
-*.log
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Backup files
+*.bak
+*.backup
+*-old
