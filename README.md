@@ -1,160 +1,242 @@
-```markdown
-# Multi-Host Hyperledger Fabric Network on Raspberry Pi
+# Hyperledger Fabric on Raspberry Pi
 
-A distributed Hyperledger Fabric 2.5 blockchain network running across two Raspberry Pi 3 Model B devices.
+A distributed Hyperledger Fabric blockchain network implementation running on Raspberry Pi devices, designed for healthcare data management with performance benchmarking capabilities.
+
+## Overview
+
+This project demonstrates a multi-organization Hyperledger Fabric network deployed across multiple Raspberry Pi devices. The network implements a healthcare record management system with smart contracts for creating, reading, updating, and deleting medical records.
 
 ## Network Architecture
 
-- **Pi1 (Raspberry Pi 1)**: Orderer + Peer0.Org1 + CA.Org1
-- **Pi2 (Raspberry Pi 2)**: Peer0.Org2 + CA.Org2
-- **Connectivity**: Tailscale VPN (100.x.x.x addresses)
-- **Consensus**: etcdraft
-- **TLS**: Enabled
+### Physical Infrastructure
+- **Pi 1**: Orderer node (orderer1.example.com), Org1 Peer (peer0.org1.example.com), Org1 CA
+- **Pi 2**: Org2 Peer (peer0.org2.example.com), Org2 CA
+- **Pi 3**: Org3 Peer (peer0.org3.example.com)
+
+### Network Components
+- **Channel**: mychannel
+- **Consensus**: Raft-based ordering service
+- **Organizations**: 3 organizations (Org1, Org2, Org3)
+- **Fabric Version**: 2.5
+- **CA Version**: 1.5
+
+## Directory Structure
+
+```
+hyperledger-fabric-raspberry/
+├── fabric-network-pi1/          # Pi 1 configuration and deployment
+│   ├── docker-compose-pi1.yaml  # Docker services for orderer and Org1 peer
+│   ├── configtx.yaml            # Network channel configuration
+│   ├── crypto-config.yaml       # Cryptographic material generation config
+│   ├── chaincode/               # Smart contract implementations
+│   │   └── healthcc/            # Healthcare chaincode (Go)
+│   ├── crypto-config/           # PKI certificates and keys
+│   ├── channel-artifacts/       # Channel genesis blocks and transactions
+│   ├── caliper-healthcare/      # Performance benchmarking suite
+│   │   ├── benchmarks/          # Benchmark configuration files
+│   │   ├── networks/            # Network connection profiles
+│   │   └── workload/            # Transaction workload modules
+│   └── orderer1-data/           # Persistent orderer ledger data
+│
+├── fabric-network-pi2/          # Pi 2 configuration and deployment
+│   ├── docker-compose-pi2.yaml  # Docker services for Org2 peer
+│   ├── chaincode-healthcare/    # Healthcare smart contract (Go)
+│   ├── crypto-config/           # Org2 cryptographic material
+│   └── peer0-org2-data/         # Persistent peer ledger data
+│
+└── fabric-network-pi3/          # Pi 3 configuration and deployment
+    ├── docker-compose.yaml      # Docker services for Org3 peer
+    └── crypto-config/           # Org3 cryptographic material
+```
+
+## Smart Contracts
+
+### Healthcare Chaincode
+The network implements healthcare record management with the following functions:
+
+- **CreateRecord**: Create a new medical record
+- **ReadRecord**: Retrieve a medical record by ID
+- **UpdateRecord**: Update an existing medical record
+- **DeleteRecord**: Remove a medical record
+- **RecordExists**: Check if a record exists
+- **GetAllRecords**: Query all records in the ledger
+
+### Data Model
+```go
+type MedicalRecord struct {
+    RecordID    string
+    PatientName string
+    Diagnosis   string
+    Treatment   string
+    Timestamp   string
+}
+```
+
+## Network Configuration
+
+### IP Addresses
+- **Pi 1 (Orderer + Org1)**: 100.89.132.94
+- **Pi 2 (Org2)**: 100.81.64.92
+- **Pi 3 (Org3)**: To be configured
+
+### Port Mappings
+#### Pi 1
+- Orderer: 7050
+- Org1 Peer: 7051
+- Org1 CA: 7054
+- Operations/Metrics: 9444-9448
+
+#### Pi 2
+- Org2 Peer: 8051
+- Org2 CA: 8054
+- Operations: 9449
 
 ## Prerequisites
 
-- 2x Raspberry Pi 3 Model B (or higher)
-- Docker and Docker Compose
-- Hyperledger Fabric 2.5 binaries
-- Tailscale VPN (or local network with proper DNS)
+- Raspberry Pi 3B+
+- Ubuntu Server or Raspberry Pi OS (64-bit)
+- Docker and Docker Compose installed
+- At least 4GB RAM per device
+- Network connectivity between all Pi devices
+- Go 1.19+ (for chaincode development)
+- Node.js 14+ (for Caliper benchmarking)
 
-## Network Components
+## Installation & Setup
 
-### Pi1 (172.20.10.11 / 100.69.213.86)
-- `orderer1.example.com:7050` - Ordering service
-- `peer0.org1.example.com:7051` - Org1 peer
-- `ca.org1.example.com:7054` - Org1 Certificate Authority
+### 1. Clone Repository
+```bash
+git clone https://github.com/Agfiras/hyperledger-fabric-raspberry.git
+cd hyperledger-fabric-raspberry
+```
 
-### Pi2 (172.20.10.12 / 100.81.64.92)
-- `peer0.org2.example.com:8051` - Org2 peer
-- `ca.org2.example.com:8054` - Org2 Certificate Authority
-
-## Setup Instructions
-
-### 1. Generate Cryptographic Material
-
-cd ~/fabric/fabric-network
+### 2. Generate Cryptographic Material
+On Pi 1:
+```bash
+cd fabric-network-pi1
 cryptogen generate --config=./crypto-config.yaml
-
 ```
 
-### 2. Generate Channel Configuration
-
+### 3. Generate Channel Artifacts
+```bash
+configtxgen -profile ChannelUsingRaft -outputBlock ./channel-artifacts/genesis.block -channelID system-channel
+configtxgen -profile ChannelUsingRaft -outputCreateChannelTx ./channel-artifacts/mychannel.tx -channelID mychannel
+configtxgen -profile ChannelUsingRaft -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID mychannel -asOrg Org1MSP
+configtxgen -profile ChannelUsingRaft -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID mychannel -asOrg Org2MSP
 ```
 
-configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channelc.tx -channelID channelc
-configtxgen -profile TwoOrgsChannel -outputBlock ./channel-artifacts/channelc.block -channelID channelc
+### 4. Start Network Components
 
+On Pi 1:
+```bash
+cd fabric-network-pi1
+docker-compose -f docker-compose-pi1.yaml up -d
 ```
 
-### 3. Copy Files to Pi2
-
+On Pi 2:
+```bash
+cd fabric-network-pi2
+docker-compose -f docker-compose-pi2.yaml up -d
 ```
 
-
-# From Pi1
-
-scp -r crypto-config pi@<pi2-ip>:~/fabric/fabric-network/
-scp -r channel-artifacts pi@<pi2-ip>:~/fabric/fabric-network/
-
-```
-
-### 4. Start Network
-
-**On Pi1:**
-```
-
-cd ~/fabric/fabric-network
-sudo docker-compose -f docker-compose-pi1.yaml up -d
-
-```
-
-**On Pi2:**
-```
-
-cd ~/fabric/fabric-network
-sudo docker-compose -f docker-compose-pi2.yaml up -d
-
+On Pi 3:
+```bash
+cd fabric-network-pi3
+docker-compose up -d
 ```
 
 ### 5. Create and Join Channel
+```bash
+# Create channel
+peer channel create -o orderer1.example.com:7050 -c mychannel -f ./channel-artifacts/mychannel.tx
 
-**Create channel (Pi1):**
+# Join peers to channel
+peer channel join -b mychannel.block
 ```
 
-sudo docker exec -it fabric-network-peer0.org1.example.com-1 bash
-peer channel create -o orderer1.example.com:7050 -c channelc \
--f /etc/hyperledger/crypto/channel-artifacts/channelc.tx \
---outputBlock /etc/hyperledger/crypto/channel-artifacts/channelc.block \
---tls true \
---cafile /etc/hyperledger/crypto/ordererOrganizations/example.com/orderers/orderer1.example.com/tls/ca.crt
+### 6. Deploy Chaincode
+```bash
+# Package chaincode
+peer lifecycle chaincode package healthcc.tar.gz --path ./chaincode/healthcc --lang golang --label healthcc_1
 
+# Install on each peer
+peer lifecycle chaincode install healthcc.tar.gz
+
+# Approve for each organization
+peer lifecycle chaincode approveformyorg -o orderer1.example.com:7050 --channelID mychannel --name healthcc --version 1.0 --package-id <PACKAGE_ID> --sequence 1
+
+# Commit chaincode
+peer lifecycle chaincode commit -o orderer1.example.com:7050 --channelID mychannel --name healthcc --version 1.0 --sequence 1
 ```
 
-**Join peers to channel:**
+## Performance Benchmarking
+
+The project includes Hyperledger Caliper for performance testing with multiple configurations:
+
+### Available Benchmarks
+- 5 workers: `all-experiments-5workers.yaml`
+
+### Run Benchmarks
+```bash
+cd fabric-network-pi1/caliper-healthcare
+npm install
+npx caliper launch manager --caliper-workspace ./ --caliper-networkconfig networks/networkConfig.yaml --caliper-benchconfig benchmarks/all-experiments-10workers.yaml --caliper-flow-only-test
 ```
 
+### Workload Modules
+- **createRecord.js**: Creates new medical records
+- **readRecord.js**: Queries existing medical records
 
-# Pi1 - Org1 peer
+## Network Management
 
-peer channel join -b /etc/hyperledger/crypto/channel-artifacts/channelc.block
-
-# Pi2 - Org2 peer (in peer container)
-
-peer channel join -b /etc/hyperledger/crypto/channel-artifacts/channelc.block
-
+### View Logs
+```bash
+docker logs -f <container_name>
 ```
 
-## Configuration Files
-
-- `configtx.yaml` - Channel and network configuration
-- `crypto-config.yaml` - Certificate generation configuration
-- `docker-compose-pi1.yaml` - Pi1 container definitions
-- `docker-compose-pi2.yaml` - Pi2 container definitions (if separate)
-- `core.yaml` - Peer configuration (optional)
-
-## Network DNS Configuration
-
-Update `/etc/hosts` on both Pi devices:
-
-**Pi1:**
+### Stop Network
+```bash
+docker-compose down
 ```
 
-127.0.0.1       orderer1.example.com peer0.org1.example.com ca.org1.example.com
-100.81.64.92    peer0.org2.example.com ca.org2.example.com
-
-```
-
-**Pi2:**
-```
-
-100.69.213.86   orderer1.example.com peer0.org1.example.com ca.org1.example.com
-127.0.0.1       peer0.org2.example.com ca.org2.example.com
-
-```
-
-## Verification
-
-```
-
-
-# Check channel membership
-
-peer channel list
-
-# Check channel info
-
-peer channel getinfo -c channelc
-
-# Check gossip connectivity
-
-sudo docker logs fabric-network-peer0.org2.example.com-1 | grep "Membership view"
-
+### Clean Up
+```bash
+docker-compose down -v
+docker system prune -a --volumes
 ```
 
 ## Troubleshooting
 
-- **Gossip timeout errors**: Check /etc/hosts DNS entries
-- **TLS certificate errors**: Regenerate crypto-config
-- **Port conflicts**: Ensure ports 7050, 7051, 8051, 9444-9449 are available
-```
+### Common Issues
+
+1. **Connection Refused Errors**
+   - Verify IP addresses in docker-compose files
+   - Check firewall rules between Pi devices
+   - Ensure all containers are running: `docker ps`
+
+2. **Endorsement Policy Failures**
+   - Confirm chaincode is installed on all required peers
+   - Verify organization MSP configurations
+
+3. **Out of Memory**
+   - Increase swap space on Raspberry Pi
+   - Reduce concurrent workers in Caliper benchmarks
+
+
+## Technology Stack
+
+- **Blockchain**: Hyperledger Fabric 2.5
+- **Smart Contracts**: Go (Golang)
+- **Deployment**: Docker & Docker Compose
+- **Benchmarking**: Hyperledger Caliper 0.5
+- **Consensus**: Raft
+- **Database**: GolangDB (embedded)
+
+## License
+
+This project is for educational and research purposes.
+
+## References
+
+- [Hyperledger Fabric Documentation](https://hyperledger-fabric.readthedocs.io/)
+- [Hyperledger Caliper Documentation](https://hyperledger.github.io/caliper/)
+- [Fabric Samples](https://github.com/hyperledger/fabric-samples)

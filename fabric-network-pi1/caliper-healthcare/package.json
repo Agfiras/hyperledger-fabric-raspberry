@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@hyperledger/caliper-core": "^0.5.0",
+    "@hyperledger/caliper-fabric": "^0.5.0",
+    "fabric-network": "^2.2.12"
+  },
+  "devDependencies": {
+    "@hyperledger/caliper-cli": "^0.5.0"
+  }
+}

@@ -1,0 +1,360 @@
+test:
+  name: All-6-Experiments-25-Workers
+  description: Complete paper experiments with 25 workers (exact paper configuration)
+  workers:
+    number: 25
+  rounds:
+    # ========================================
+    # EXPERIMENT 1: Worker Variation (Fixed-Rate)
+    # Testing 25 workers at 75 TPS
+    # ========================================
+    - label: exp1-create-5workers-75tps
+      description: Experiment 1 - CreateRecord 25 workers 75 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp1-read-5workers-75tps
+      description: Experiment 1 - ReadRecord 25 workers 75 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 200
+
+    # ========================================
+    # EXPERIMENT 2: Transaction Number Variation (Fixed-Rate)
+    # Testing 1000, 5000, 15000 transactions at 75 TPS
+    # ========================================
+    - label: exp2-create-1000tx-75tps
+      description: Experiment 2 - CreateRecord 1000 transactions
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp2-create-5000tx-75tps
+      description: Experiment 2 - CreateRecord 5000 transactions
+      txNumber: 5000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp2-create-15000tx-75tps
+      description: Experiment 2 - CreateRecord 15000 transactions
+      txNumber: 15000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp2-read-1000tx-75tps
+      description: Experiment 2 - ReadRecord 1000 transactions
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 3000
+
+    - label: exp2-read-5000tx-75tps
+      description: Experiment 2 - ReadRecord 5000 transactions
+      txNumber: 5000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 3000
+
+    - label: exp2-read-15000tx-75tps
+      description: Experiment 2 - ReadRecord 15000 transactions
+      txNumber: 15000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 3000
+
+    # ========================================
+    # EXPERIMENT 3: TPS Rate Variation (Fixed-Rate)
+    # Testing 75, 150, 250 TPS
+    # ========================================
+    - label: exp3-create-75tps
+      description: Experiment 3 - CreateRecord 75 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp3-create-150tps
+      description: Experiment 3 - CreateRecord 150 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 150
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp3-create-250tps
+      description: Experiment 3 - CreateRecord 250 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 250
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp3-read-75tps
+      description: Experiment 3 - ReadRecord 75 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+    - label: exp3-read-150tps
+      description: Experiment 3 - ReadRecord 150 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 150
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+    - label: exp3-read-250tps
+      description: Experiment 3 - ReadRecord 250 TPS
+      txNumber: 1000
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 250
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+    # ========================================
+    # EXPERIMENT 4: Worker Variation (Linear-Rate)
+    # Testing 25 workers with linear rate 25-75 TPS
+    # ========================================
+    - label: exp4-create-5workers-linear
+      description: Experiment 4 - CreateRecord 25 workers linear 25-75 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp4-read-5workers-linear
+      description: Experiment 4 - ReadRecord 25 workers linear 25-75 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+    # ========================================
+    # EXPERIMENT 5: Transaction Number Variation (Linear-Rate)
+    # Testing 1000, 5000, 15000 transactions with linear 25-75 TPS
+    # ========================================
+    - label: exp5-create-1000tx-linear
+      description: Experiment 5 - CreateRecord 1000 tx linear
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp5-create-5000tx-linear
+      description: Experiment 5 - CreateRecord 5000 tx linear
+      txNumber: 5000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp5-create-15000tx-linear
+      description: Experiment 5 - CreateRecord 15000 tx linear
+      txNumber: 15000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp5-read-1000tx-linear
+      description: Experiment 5 - ReadRecord 1000 tx linear
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 3000
+
+    - label: exp5-read-5000tx-linear
+      description: Experiment 5 - ReadRecord 5000 tx linear
+      txNumber: 5000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 3000
+
+    - label: exp5-read-15000tx-linear
+      description: Experiment 5 - ReadRecord 15000 tx linear
+      txNumber: 15000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 3000
+
+    # ========================================
+    # EXPERIMENT 6: TPS Rate Variation (Linear-Rate)
+    # Testing linear rates: 25-75, 50-100, 75-150 TPS
+    # ========================================
+    - label: exp6-create-25to75-linear
+      description: Experiment 6 - CreateRecord linear 25-75 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp6-create-50to100-linear
+      description: Experiment 6 - CreateRecord linear 50-100 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 50
+          finishingTps: 100
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp6-create-75to150-linear
+      description: Experiment 6 - CreateRecord linear 75-150 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 75
+          finishingTps: 150
+      workload:
+        module: workload/createRecord.js
+
+    - label: exp6-read-25to75-linear
+      description: Experiment 6 - ReadRecord linear 25-75 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 25
+          finishingTps: 75
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+    - label: exp6-read-50to100-linear
+      description: Experiment 6 - ReadRecord linear 50-100 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 50
+          finishingTps: 100
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+    - label: exp6-read-75to150-linear
+      description: Experiment 6 - ReadRecord linear 75-150 TPS
+      txNumber: 1000
+      rateControl:
+        type: linear-rate
+        opts:
+          startingTps: 75
+          finishingTps: 150
+      workload:
+        module: workload/readRecord.js
+        arguments:
+          maxRecords: 600
+
+monitors:
+  resource:
+    - module: docker
+      options:
+        interval: 5
+        containers:
+          - peer0.org1.example.com
+          - orderer1.example.com
